@@ -1,5 +1,5 @@
 ﻿# BhopMapAutoDownloader - BMD
-[![Build](https://github.com/Jonesoez/BhopMapAutoDownloader/actions/workflows/build.yml/badge.svg)](https://github.com/Jonesoez/BhopMapAutoDownloader/actions/workflows/build.yml)
+[![Build](https://github.com/Jonesoez/BhopMapAutoDownloader/actions/workflows/build.yml/badge.svg?branch=master)](https://github.com/Jonesoez/BhopMapAutoDownloader/actions/workflows/build.yml)
 
 Downloads BHOP maps for `CS:S` which were uploaded to `gamebanana.com`. 
 
