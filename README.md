@@ -11,7 +11,7 @@ You can run the app once to create a `settings.json` file or create one yourself
 ##### settings.json
 ```json
 {
-	"DownloadPath": "tmp_maps",
+    "DownloadPath": "tmp_maps",
     "KeepDownloadFiles": false,
     "ExtractPath": "extracted_maps",
     "FastDlPath": "fastdl",
