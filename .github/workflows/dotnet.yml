@@ -5,6 +5,7 @@ on:
     branches: [ master ]
     paths:
     - 'BhopMapAutoDownloader/**'
+    
   pull_request:
     branches: [ master ]
 
