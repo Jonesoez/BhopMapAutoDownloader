@@ -6,7 +6,7 @@ Downloads BHOP maps for `CS:S` which were uploaded to `gamebanana.com`.
 The basic stuff works but this is still unfinished and not optimized enough to be used right now.
 
 ## Setup:
-You can run the app once to create a `settings.json` file or create one yourself (must be in the same directory as the executable). I'd recommended to set `CheckInterval` to 5 or 10 minutes as **seconds** if you want to run it for a longer period. For the sake of debugging I'm using 5 seconds (not recommended).
+You can run the app once to create a `settings.json` file or create one yourself (must be in the same directory as the executable). I'd recommend to set `CheckInterval` to 5 or 10 minutes as **seconds** if you want to run it for a longer period. For the sake of debugging I'm using 5 seconds (not recommended).
 
 ##### settings.json
 ```json
