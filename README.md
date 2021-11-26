@@ -11,11 +11,13 @@ You can run the app once to create a `settings.json` file or create one yourself
 ##### settings.json
 ```json
 {
-    "DownloadPath": "tmp_maps",
-    "KeepDownloadFiles": false,
-    "ExtractPath": "extracted_maps",
-    "FastDlPath": "fastdl",
-    "CheckInterval": 300
+   "DownloadPath": "tmp_maps",
+   "KeepDownloadFiles": false,
+   "ExtractPath": "extracted_maps",
+   "EnableFastDlCompression": false,
+   "FastDlPath": "\\var\\lib\\pterodactyl\\volumes\\fastdl\\",
+   "CheckInterval": 300,
+   "NumberOfMapsToCheck": 3
 }
 ```
 
