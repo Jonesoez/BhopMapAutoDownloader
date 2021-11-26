@@ -10,6 +10,8 @@ namespace BhopMapAutoDownloader.Services
 {
     public class FileService
     {
+        public string ExtractedFileName { get; set; }
+
         private readonly Settings _settings;
 
         public FileService(Settings settings)
@@ -24,7 +26,7 @@ namespace BhopMapAutoDownloader.Services
 
             using ArchiveFile archiveFile = new ArchiveFile(Path.Combine(_settings.DownloadPath, compressedFile));
             archiveFile.Extract(_settings.ExtractPath, true);
-            //return archiveFile.Entries.FirstOrDefault().FileName;
+            ExtractedFileName = archiveFile.Entries.FirstOrDefault().FileName;
         }
 
         public void CompressToFastdl(string filename)

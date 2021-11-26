@@ -45,9 +45,9 @@ namespace BhopMapAutoDownloader.Services
         {
             while (true)
             {
-                var _infos = JsonConvert.DeserializeObject<Gamebanana.Data[]>(await GetRecentUploads());
+                var _mapinfos = JsonConvert.DeserializeObject<Gamebanana.Data[]>(await GetRecentUploads());
 
-                foreach (var items in _infos)
+                foreach (var items in _mapinfos)
                 {
                     if (_dbservice.GetMap(items._sName) == null)
                     {
@@ -82,9 +82,8 @@ namespace BhopMapAutoDownloader.Services
                         if(_settings.EnableFastDlCompression)
                         {
                             LoggerService.Log($"Compressing to bz2 for FastDl {items._aFiles[0]._sFile}...", LoggerService.LogType.INFO);
-                            //_fileservice.CompressToFastdl();
+                            _fileservice.CompressToFastdl(_fileservice.ExtractedFileName);
                         }
-
                     }
                 }
 
