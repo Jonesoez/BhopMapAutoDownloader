@@ -13,21 +13,21 @@ namespace BMADUnitTests
         [Fact]
         public void CreateDatabaseSuccessTest()
         {
-            var context = new BmadDatabase();
+            var context = new BmdDatabase();
             Assert.True(context.Database.EnsureCreated());
         }
 
         [Fact]
         public void DeleteDatabaseSuccessTest()
         {
-            var context = new BmadDatabase();
+            var context = new BmdDatabase();
             Assert.True(context.Database.EnsureDeleted());
         }
 
         [Fact]
         public void AddMapToDatabase()
         {
-            var context = new BmadDatabase();
+            var context = new BmdDatabase();
             var bot_service = new DbService(context);
 
             Maps _toadd = new()

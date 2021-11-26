@@ -17,9 +17,9 @@ namespace BhopMapAutoDownloader.Services
 {
     public class DbService
     {
-        private readonly BmadDatabase _db;
+        private readonly BmdDatabase _db;
 
-        public DbService(BmadDatabase db)
+        public DbService(BmdDatabase db)
         {
             _db = db;
         }

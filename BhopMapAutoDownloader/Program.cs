@@ -18,14 +18,15 @@ namespace BhopMapAutoDownloader
     {
         public static void Main()
         {
-            using var db = new BmadDatabase();
+            using var db = new BmdDatabase();
             db.Database.EnsureCreated();
 
             Settings _settings = new Settings();
+            FileService _fileservice = new FileService(_settings);
             _settings.LoadSettings();
 
             DbService _botservice = new DbService(db);
-            BmadService _bmadservice = new BmadService(_botservice, _settings);
+            BmdService _bmadservice = new BmdService(_botservice, _settings, _fileservice);
 
             _bmadservice.CheckForNewMaps().GetAwaiter().GetResult();
         }

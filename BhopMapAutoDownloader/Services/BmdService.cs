@@ -2,11 +2,6 @@
 using BhopMapAutoDownloader.Infrastructure;
 using BhopMapAutoDownloader.Models;
 using Newtonsoft.Json;
-using SevenZipExtractor;
-using SharpCompress.Common;
-using SharpCompress.Compressors.BZip2;
-using SharpCompress.Readers;
-using SharpCompress.Writers;
 using System;
 using System.IO;
 using System.Linq;
@@ -17,20 +12,22 @@ using System.Threading.Tasks;
 
 namespace BhopMapAutoDownloader.Services
 {
-    public class BmadService
+    public class BmdService
     {
         private readonly WebClient webclient = new WebClient();
         private static readonly HttpClientHandler _handler = new HttpClientHandler();
         private static readonly HttpClient _client = new HttpClient(_handler);
-        private static readonly string API_URL = "https://gamebanana.com/apiv7/Mod/ByCategory?_csvProperties=_idRow,_sName,_aSubmitter,_aFiles,_aGame&_aCategoryRowIds[]=5568&_sOrderBy=_tsDateAdded,DESC&_nPerpage=3";
+        private static readonly string API_URL = $"https://gamebanana.com/apiv7/Mod/ByCategory?_csvProperties=_idRow,_sName,_aSubmitter,_aFiles,_aGame&_aCategoryRowIds[]=5568&_sOrderBy=_tsDateAdded,DESC&_nPerpage=3";
 
         private readonly DbService _dbservice;
         private readonly Settings _settings;
+        private readonly FileService _fileservice;
 
-        public BmadService(DbService dbservice, Settings settings)
+        public BmdService(DbService dbservice, Settings settings, FileService fileservice)
         {
             _dbservice = dbservice;
             _settings = settings;
+            _fileservice = fileservice;
 
             if (!Directory.Exists(_settings.DownloadPath))
                 Directory.CreateDirectory(_settings.DownloadPath);
@@ -44,25 +41,6 @@ namespace BhopMapAutoDownloader.Services
             return await result.Content.ReadAsStringAsync();
         }
 
-        public string ExtractedFile(string compressedFile)
-        {
-            if (!File.Exists(_settings.DownloadPath + compressedFile))
-                return null;
-
-            using ArchiveFile archiveFile = new ArchiveFile(_settings.DownloadPath + compressedFile);
-            archiveFile.Extract(_settings.ExtractPath, true);
-
-            return archiveFile.Entries.FirstOrDefault().FileName;
-        }
-
-        public void CompressToFastdl(string filename)
-        {
-            if (!File.Exists(_settings.ExtractPath + filename))
-                return;
-
-            //TODO
-        }
-
         public async Task CheckForNewMaps()
         {
             while (true)
@@ -71,8 +49,7 @@ namespace BhopMapAutoDownloader.Services
 
                 foreach (var items in _infos)
                 {
-                    var _map = _dbservice.GetMap(items._sName);
-                    if (_map == null)
+                    if (_dbservice.GetMap(items._sName) == null)
                     {
                         Maps _toadd = new Maps()
                         {
@@ -87,25 +64,27 @@ namespace BhopMapAutoDownloader.Services
                         LoggerService.Log($"Downloading...");
 
                         _dbservice.AddMap(_toadd);
-
-                        webclient.DownloadFile(new Uri($"{items._aFiles[0]._sDownloadUrl}"), _settings.DownloadPath + items._aFiles[0]._sFile);
+                        webclient.DownloadFile(new Uri($"{items._aFiles[0]._sDownloadUrl}"), Path.Combine(_settings.DownloadPath, items._aFiles[0]._sFile));
 
                         LoggerService.Log($"Extracting...");
+                        _fileservice.ExtractFile(items._aFiles[0]._sFile);
 
-                        var _tocompress = ExtractedFile(items._aFiles[0]._sFile);
-                        
                         LoggerService.Log($"Download and extraction of map \"{items._sName}\" completed!", LoggerService.LogType.DONE);
-                        LoggerService.Log($"Deleting file {items._aFiles[0]._sFile}", LoggerService.LogType.INFO);
 
                         if(!_settings.KeepDownloadFiles)
-                            if(File.Exists(_settings.DownloadPath + items._aFiles[0]._sFile))
-                                File.Delete(_settings.DownloadPath + items._aFiles[0]._sFile);
+                            if(File.Exists(Path.Combine(_settings.DownloadPath, items._aFiles[0]._sFile)))
+                            {
+                                LoggerService.Log($"Deleting file {items._aFiles[0]._sFile}", LoggerService.LogType.INFO);
+                                File.Delete(Path.Combine(_settings.DownloadPath, items._aFiles[0]._sFile));
+                                LoggerService.Log($"File deleted!\n", LoggerService.LogType.DONE);
+                            }
 
-                        LoggerService.Log($"Compressing to bz2 for FastDl {items._aFiles[0]._sFile}", LoggerService.LogType.INFO);
+                        if(_settings.EnableFastDlCompression)
+                        {
+                            LoggerService.Log($"Compressing to bz2 for FastDl {items._aFiles[0]._sFile}...", LoggerService.LogType.INFO);
+                            //_fileservice.CompressToFastdl();
+                        }
 
-                        CompressToFastdl(_tocompress);
-
-                        LoggerService.Log($"File deleted!\n", LoggerService.LogType.DONE);
                     }
                 }
 
