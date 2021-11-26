@@ -3,7 +3,6 @@ using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
 using System.IO;
-using System.Text;
 
 namespace BhopMapAutoDownloader.Infrastructure
 {
@@ -14,6 +13,7 @@ namespace BhopMapAutoDownloader.Infrastructure
         public string ExtractPath { get; set; } = Path.Combine("extracted_maps");
         public bool EnableFastDlCompression { get; set; } = false;
         public string FastDlPath { get; set; } = @"\var\lib\pterodactyl\volumes\fastdl\";
+        public List<string> MapTypes { get; set; } = new List<string> { "bhop", "kz", "autobhop" };
         public int CheckInterval { get; set; } = 300;
         public int NumberOfMapsToCheck { get; set; } = 3;
 
@@ -24,7 +24,7 @@ namespace BhopMapAutoDownloader.Infrastructure
             if (!File.Exists(_sfilename))
                 File.WriteAllText("settings.json", JsonConvert.SerializeObject(new Settings { }, Formatting.Indented));
 
-            using StreamReader _settingsfile = new StreamReader(_sfilename);
+            using StreamReader _settingsfile = new StreamReader(_sfilename.ToLower());
 
             if (_settingsfile == null)
                 return;
@@ -38,6 +38,7 @@ namespace BhopMapAutoDownloader.Infrastructure
                 KeepDownloadFiles = _settings.KeepDownloadFiles;
                 EnableFastDlCompression = _settings.EnableFastDlCompression;
                 FastDlPath = _settings.FastDlPath;
+                MapTypes = _settings.MapTypes.ConvertAll(m => m.ToLower());
 
                 if (5 <= _settings.CheckInterval && _settings.CheckInterval <= 86400) //allow up to every 24 hours checks/api calls
                     CheckInterval = _settings.CheckInterval;

@@ -1,8 +1,4 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace BhopMapAutoDownloader.Services
 {
@@ -29,7 +25,7 @@ namespace BhopMapAutoDownloader.Services
                     break;
                 case 1:
                     Console.ForegroundColor = ConsoleColor.Red;
-                    Console.Write("[Error] \t");
+                    Console.Write("[ERROR] \t");
                     Console.ResetColor();
                     Console.ForegroundColor = ConsoleColor.Yellow;
                     Console.WriteLine(message);

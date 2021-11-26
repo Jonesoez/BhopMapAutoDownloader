@@ -1,10 +1,8 @@
 ﻿using BhopMapAutoDownloader.Infrastructure;
 using SevenZipExtractor;
 using System;
-using System.Collections.Generic;
 using System.IO;
 using System.Linq;
-using System.Text;
 
 namespace BhopMapAutoDownloader.Services
 {
@@ -25,8 +23,18 @@ namespace BhopMapAutoDownloader.Services
                 return;
 
             using ArchiveFile archiveFile = new ArchiveFile(Path.Combine(_settings.DownloadPath, compressedFile));
-            archiveFile.Extract(_settings.ExtractPath, true);
-            ExtractedFileName = archiveFile.Entries.FirstOrDefault().FileName;
+
+            try
+            {
+                var _bspfile = archiveFile.Entries.Where(m => Path.GetExtension(m.FileName) == ".bsp").FirstOrDefault();
+
+                archiveFile.Extract(_settings.ExtractPath, true);
+                ExtractedFileName = _bspfile.FileName;
+            }
+            catch (Exception e)
+            {
+                LoggerService.Log(e.Message, LoggerService.LogType.ERROR);
+            }
         }
 
         public void CompressToFastdl(string filename)
