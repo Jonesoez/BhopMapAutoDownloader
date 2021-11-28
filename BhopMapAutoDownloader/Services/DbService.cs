@@ -3,25 +3,22 @@ using BhopMapAutoDownloader.Infrastructure;
 using BhopMapAutoDownloader.Models;
 using BhopMapAutoDownloader.Services;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Logging;
 using Newtonsoft.Json;
 using System;
-using System.Collections.Generic;
-using System.IO;
 using System.Linq;
-using System.Net.Http;
-using System.Text;
-using System.Threading;
-using System.Threading.Tasks;
 
 namespace BhopMapAutoDownloader.Services
 {
     public class DbService
     {
         private readonly BmdDatabase _db;
+        private readonly ILogger<DbService> _log;
 
-        public DbService(BmdDatabase db)
+        public DbService(BmdDatabase db, ILogger<DbService> log)
         {
             _db = db;
+            _log = log;
         }
 
         public void AddMap(Maps map)
@@ -36,7 +33,7 @@ namespace BhopMapAutoDownloader.Services
             }
             catch (Exception e)
             {
-                LoggerService.Log(e.Message, LoggerService.LogType.ERROR);
+                _log.LogError(e.Message);
             }
         }
 

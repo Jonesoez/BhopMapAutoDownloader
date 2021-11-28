@@ -1,6 +1,8 @@
 using BhopMapAutoDownloader.Infrastructure;
 using BhopMapAutoDownloader.Models;
 using BhopMapAutoDownloader.Services;
+using Microsoft.Extensions.Logging;
+using Moq;
 using System;
 using Xunit;
 
@@ -23,26 +25,27 @@ namespace BMADUnitTests
             Assert.True(context.Database.EnsureDeleted());
         }
 
-        [Fact]
-        public void AddMapToDatabase()
-        {
-            var context = new BmdDatabase();
-            var bot_service = new DbService(context);
+        //[Fact]
+        //public void AddMapToDatabase()
+        //{
+        //    var context = new BmdDatabase();
 
-            Maps _toadd = new()
-            {
-                Name = "Test",
-                Tier = "Test Tier 1337",
-                GameType = "Test CSS",
-                FileName = "bhop_test",
-                DownloadLink = "https://test.download/dl/bhop_test",
-                Creator = "Mr. J0N3S",
-                UploadDate = DateTime.Now
-            };
+        //    var bot_service = new DbService(context);
 
-            bot_service.AddMap(_toadd);
+        //    Maps _toadd = new()
+        //    {
+        //        Name = "Test",
+        //        Tier = "Test Tier 1337",
+        //        GameType = "Test CSS",
+        //        FileName = "bhop_test",
+        //        DownloadLink = "https://test.download/dl/bhop_test",
+        //        Creator = "Mr. J0N3S",
+        //        UploadDate = DateTime.Now
+        //    };
 
-            Assert.True(bot_service.GetMap("Test").Name == "Test");
-        }
+        //    bot_service.AddMap(_toadd);
+
+        //    Assert.True(bot_service.GetMap("Test").Name == "Test");
+        //}
     }
 }

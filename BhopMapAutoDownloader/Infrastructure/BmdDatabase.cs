@@ -18,7 +18,7 @@ namespace BhopMapAutoDownloader.Infrastructure
             if (!optionsBuilder.IsConfigured)
             {
                 optionsBuilder.UseSqlite("Data Source=BMD_Database.db");
-                optionsBuilder.EnableSensitiveDataLogging(true);
+                optionsBuilder.EnableSensitiveDataLogging(false);
             }
         }
     }

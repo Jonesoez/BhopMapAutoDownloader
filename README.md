@@ -6,11 +6,20 @@ Downloads BHOP maps for `CS:S` which were uploaded to `gamebanana.com`.
 The basic stuff works but this is still unfinished and not optimized enough to be used right now.
 
 ## Setup:
-You can run the app once to create a `settings.json` file or create one yourself (must be in the same directory as the executable). I'd recommend to set `CheckInterval` to 5 or 10 minutes as **seconds** if you want to run it for a longer period. For the sake of debugging I'm using 5 seconds (not recommended).
+Create and configure the `appsettings.json` file and put it in the same directory as the executable. I'd recommend to set `CheckInterval` to 5 or 10 minutes as **seconds** if you want to run it for a longer period. For the sake of debugging I'm using 5 seconds (not recommended).
 
-##### settings.json
+##### appsettings.json
 ```json
 {
+  "Serilog": {
+    "MinimumLevel": {
+      "Default": "Information",
+      "Override": {
+        "Microsoft": "Error",
+        "System": "Warning"
+      }
+    }
+  },
   "DownloadPath": "tmp_maps",
   "KeepDownloadFiles": false,
   "ExtractPath": "extracted_maps",
@@ -21,7 +30,7 @@ You can run the app once to create a `settings.json` file or create one yourself
     "kz",
     "autobhop"
   ],
-  "CheckInterval": 300,
+  "CheckInterval": 5,
   "NumberOfMapsToCheck": 3
 }
 ```
