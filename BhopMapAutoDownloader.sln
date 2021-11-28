@@ -5,8 +5,6 @@ VisualStudioVersion = 16.0.31129.286
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "BhopMapAutoDownloader", "BhopMapAutoDownloader\BhopMapAutoDownloader.csproj", "{3BFD051C-5E62-44CD-A893-24590C8403C8}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "BMDUnitTests", "BMADUnitTests\BMDUnitTests.csproj", "{1FFE0452-90B1-4A38-AEDE-58B48C6C41CE}"
-EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -17,10 +15,6 @@ Global
 		{3BFD051C-5E62-44CD-A893-24590C8403C8}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{3BFD051C-5E62-44CD-A893-24590C8403C8}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{3BFD051C-5E62-44CD-A893-24590C8403C8}.Release|Any CPU.Build.0 = Release|Any CPU
-		{1FFE0452-90B1-4A38-AEDE-58B48C6C41CE}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{1FFE0452-90B1-4A38-AEDE-58B48C6C41CE}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{1FFE0452-90B1-4A38-AEDE-58B48C6C41CE}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{1FFE0452-90B1-4A38-AEDE-58B48C6C41CE}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
