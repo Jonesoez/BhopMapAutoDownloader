@@ -5,7 +5,7 @@ VisualStudioVersion = 16.0.31129.286
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "BhopMapAutoDownloader", "BhopMapAutoDownloader\BhopMapAutoDownloader.csproj", "{3BFD051C-5E62-44CD-A893-24590C8403C8}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "BMADUnitTests", "BMADUnitTests\BMADUnitTests.csproj", "{1FFE0452-90B1-4A38-AEDE-58B48C6C41CE}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "BMDUnitTests", "BMADUnitTests\BMDUnitTests.csproj", "{1FFE0452-90B1-4A38-AEDE-58B48C6C41CE}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution

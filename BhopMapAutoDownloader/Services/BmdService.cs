@@ -1,8 +1,11 @@
 ﻿using BhopMapAutoDownloader.Helpers;
 using BhopMapAutoDownloader.Infrastructure;
 using BhopMapAutoDownloader.Models;
+using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.Logging;
 using Newtonsoft.Json;
 using System;
+using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Net;
@@ -14,27 +17,31 @@ namespace BhopMapAutoDownloader.Services
 {
     public class BmdService
     {
-        private static readonly string API_URL = $"https://gamebanana.com/apiv7/Mod/ByCategory?_csvProperties=_idRow,_sName,_aSubmitter,_aFiles,_aGame&_aCategoryRowIds[]=5568&_sOrderBy=_tsDateAdded,DESC&_nPerpage=3";
+        private static readonly string API_BASE_URL = $"https://gamebanana.com/apiv7/Mod/ByCategory?_csvProperties=_idRow,_sName,_aSubmitter,_aFiles,_aGame&_aCategoryRowIds[]=5568&_sOrderBy=_tsDateAdded,DESC&_nPerpage=";
+        private static string API_URL { get; set; }
 
         private readonly DbService _dbservice;
-        private readonly Settings _settings;
         private readonly FileService _fileservice;
+        private readonly ILogger<BmdService> _log;
+        private readonly IConfiguration _config;
 
-        public BmdService(DbService dbservice, Settings settings, FileService fileservice)
+        public BmdService(DbService dbservice, FileService fileservice, ILogger<BmdService> log, IConfiguration config)
         {
             _dbservice = dbservice;
-            _settings = settings;
             _fileservice = fileservice;
+            _log = log;
+            _config = config;
 
-            Directory.CreateDirectory(_settings.DownloadPath);
-            Directory.CreateDirectory(_settings.ExtractPath);
+            API_URL = API_BASE_URL + _config.GetValue<string>("NumberOfMapsToCheck");
+            Directory.CreateDirectory(_config.GetValue<string>("DownloadPath"));
+            Directory.CreateDirectory(_config.GetValue<string>("ExtractPath"));
         }
 
         public static async Task<string> GetRecentUploads()
         {
             using HttpClient _client = new HttpClient();
             _client.BaseAddress = new Uri(API_URL);
-            HttpResponseMessage response = await _client.GetAsync(API_URL);
+            using HttpResponseMessage response = await _client.GetAsync(API_URL);
 
             if (response.IsSuccessStatusCode)
                 return await response.Content.ReadAsStringAsync();
@@ -46,7 +53,7 @@ namespace BhopMapAutoDownloader.Services
         {
             while (true)
             {
-                var _mapinfos = JsonConvert.DeserializeObject<Gamebanana.Data[]>(await GetRecentUploads());
+                var _mapinfos = JsonConvert.DeserializeObject<Gamebanana.Data[]>(await GetRecentUploads().ConfigureAwait(false));
 
                 foreach (var items in _mapinfos)
                 {
@@ -61,41 +68,41 @@ namespace BhopMapAutoDownloader.Services
                             DownloadLink = items._aFiles[0]._sDownloadUrl
                         };
 
-                        if (_settings.MapTypes.Any(m => items._sName.Contains(m, StringComparison.OrdinalIgnoreCase)))
+                        if (_config.GetSection("MapTypes").GetChildren().Any(m => items._sName.Contains(m.Value, StringComparison.OrdinalIgnoreCase)))
                         {
-                            LoggerService.Log($"Found new map: {items._sName} by {items._aSubmitter._sName}");
-                            LoggerService.Log($"Downloading...");
+                            _log.LogInformation("Found new map: {mapname} by {mapsubmitter}", items._sName, items._aSubmitter._sName);
+                            _log.LogInformation("Downloading...");
 
                             _dbservice.AddMap(_toadd);
 
                             using WebClient webclient = new WebClient();
-                            webclient.DownloadFile(new Uri($"{items._aFiles[0]._sDownloadUrl}"), Path.Combine(_settings.DownloadPath, items._aFiles[0]._sFile));
+                            webclient.DownloadFile(new Uri($"{items._aFiles[0]._sDownloadUrl}"), Path.Combine(_config.GetValue<string>("DownloadPath"), items._aFiles[0]._sFile));
 
-                            LoggerService.Log($"Extracting...");
+                            _log.LogInformation($"Extracting...");
                             _fileservice.ExtractFile(items._aFiles[0]._sFile);
 
-                            LoggerService.Log($"Download and extraction of map \"{items._sName}\" completed!", LoggerService.LogType.DONE);
+                            _log.LogInformation("Download and extraction of map \"{mapname}\" completed!", items._sName);
 
-                            if (!_settings.KeepDownloadFiles)
-                                if (File.Exists(Path.Combine(_settings.DownloadPath, items._aFiles[0]._sFile)))
+                            if (!_config.GetValue<bool>("KeepDownloadFiles"))
+                                if (File.Exists(Path.Combine(_config.GetValue<string>("DownloadPath"), items._aFiles[0]._sFile)))
                                 {
-                                    LoggerService.Log($"Deleting file {items._aFiles[0]._sFile}", LoggerService.LogType.INFO);
-                                    File.Delete(Path.Combine(_settings.DownloadPath, items._aFiles[0]._sFile));
-                                    LoggerService.Log($"File deleted!\n", LoggerService.LogType.DONE);
+                                    _log.LogInformation("Deleting file {mapfilename}", items._aFiles[0]._sFile);
+                                    File.Delete(Path.Combine(_config.GetValue<string>("DownloadPath"), items._aFiles[0]._sFile));
+                                    _log.LogInformation("File deleted!");
                                 }
 
-                            if (_settings.EnableFastDlCompression)
+                            if (_config.GetValue<bool>("EnableFastDlCompression"))
                             {
-                                LoggerService.Log($"Compressing to bz2 for FastDl {items._aFiles[0]._sFile}...", LoggerService.LogType.INFO);
+                                _log.LogInformation("Compressing to bz2 for FastDl {mapfilename}...", items._aFiles[0]._sFile);
                                 _fileservice.CompressToFastdl(_fileservice.ExtractedFileName);
                             }
                         }
                     }
                 }
 
-                LoggerService.Log($"Looking for new maps...", LoggerService.LogType.INFO);
+                _log.LogInformation("Looking for new maps...");
 
-                await Task.Delay(TimeSpan.FromSeconds(_settings.CheckInterval), CancellationToken.None);
+                await Task.Delay(TimeSpan.FromSeconds(_config.GetValue<int>("CheckInterval")), CancellationToken.None);
             }
         }
     }

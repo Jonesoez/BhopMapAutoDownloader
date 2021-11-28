@@ -1,5 +1,10 @@
 ﻿using BhopMapAutoDownloader.Infrastructure;
 using BhopMapAutoDownloader.Services;
+using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Hosting;
+using Serilog;
+using System.IO;
 
 namespace BhopMapAutoDownloader
 {
@@ -10,14 +15,35 @@ namespace BhopMapAutoDownloader
             using var db = new BmdDatabase();
             db.Database.EnsureCreated();
 
-            Settings _settings = new Settings();
-            FileService _fileservice = new FileService(_settings);
-            _settings.LoadSettings();
+            var buildsettings = new ConfigurationBuilder();
+            BuildConfig(buildsettings);
 
-            DbService _dbservice = new DbService(db);
-            BmdService _bmdservice = new BmdService(_dbservice, _settings, _fileservice);
+            Log.Logger = new LoggerConfiguration()
+                .ReadFrom.Configuration(buildsettings.Build())
+                .Enrich.FromLogContext()
+                .WriteTo.Console()
+                .CreateLogger();
 
-            _bmdservice.CheckForNewMaps().GetAwaiter().GetResult();
+            var host = Host.CreateDefaultBuilder()
+                .ConfigureServices((context, services) =>
+               {
+                   services.AddDbContext<BmdDatabase>();
+                   services.AddTransient<DbService>();
+                   services.AddTransient<FileService>();
+                   services.AddTransient<BmdService>();
+               })
+                .UseSerilog()
+                .Build();
+
+            var startup = ActivatorUtilities.CreateInstance<BmdService>(host.Services);
+            startup.CheckForNewMaps().GetAwaiter().GetResult();
+        }
+
+        public static void BuildConfig(IConfigurationBuilder builder)
+        {
+            builder.SetBasePath(Directory.GetCurrentDirectory())
+                .AddJsonFile("appsettings.json", optional: false, reloadOnChange: true)
+                .AddEnvironmentVariables();
         }
     }
 }

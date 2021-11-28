@@ -1,4 +1,5 @@
-﻿namespace BhopMapAutoDownloader.Models
+﻿
+namespace BhopMapAutoDownloader.Models
 {
     public class Gamebanana
     {
@@ -72,6 +73,5 @@
             public bool _bContainsExe { get; set; }
             public string _sDownloadUrl { get; set; }
         }
-
     }
 }
