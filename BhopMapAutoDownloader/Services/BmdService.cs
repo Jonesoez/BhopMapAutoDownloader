@@ -17,8 +17,8 @@ namespace BhopMapAutoDownloader.Services
 {
     public class BmdService
     {
-        private static readonly string API_BASE_URL = $"https://gamebanana.com/apiv7/Mod/ByCategory?_csvProperties=_idRow,_sName,_aSubmitter,_aFiles,_aGame&_aCategoryRowIds[]=5568&_sOrderBy=_tsDateAdded,DESC&_nPerpage=";
         private static string API_URL { get; set; }
+        private static readonly string BASE_URL = $"https://gamebanana.com/apiv7/Mod/ByCategory?_csvProperties=_idRow,_sName,_aSubmitter,_aFiles,_aGame&_aCategoryRowIds[]=5568&_sOrderBy=_tsDateAdded,DESC&_nPerpage=";
 
         private readonly DbService _dbservice;
         private readonly FileService _fileservice;
@@ -32,7 +32,7 @@ namespace BhopMapAutoDownloader.Services
             _log = log;
             _config = config;
 
-            API_URL = API_BASE_URL + _config.GetValue<string>("NumberOfMapsToCheck");
+            API_URL = BASE_URL + _config.GetValue<string>("NumberOfMapsToCheck");
             Directory.CreateDirectory(_config.GetValue<string>("DownloadPath"));
             Directory.CreateDirectory(_config.GetValue<string>("ExtractPath"));
         }
