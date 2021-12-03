@@ -4,6 +4,7 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Serilog;
+using System;
 using System.IO;
 
 namespace BhopMapAutoDownloader
@@ -22,7 +23,13 @@ namespace BhopMapAutoDownloader
                 .ReadFrom.Configuration(buildsettings.Build())
                 .Enrich.FromLogContext()
                 .WriteTo.Console()
+                .WriteTo.File(Path.Combine("Logs", "Log-.txt"), 
+                    retainedFileCountLimit: 20,
+                    rollingInterval: RollingInterval.Day,
+                    rollOnFileSizeLimit: true)
                 .CreateLogger();
+
+            Log.Information("BMD Starting Up...");
 
             var host = Host.CreateDefaultBuilder()
                 .ConfigureServices((context, services) =>
@@ -36,7 +43,7 @@ namespace BhopMapAutoDownloader
                 .Build();
 
             var startup = ActivatorUtilities.CreateInstance<BmdService>(host.Services);
-            startup.CheckForNewMaps().GetAwaiter().GetResult();
+            startup.Run().GetAwaiter().GetResult();
         }
 
         public static void BuildConfig(IConfigurationBuilder builder)

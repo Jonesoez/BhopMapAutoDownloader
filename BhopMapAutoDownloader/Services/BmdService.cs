@@ -18,7 +18,9 @@ namespace BhopMapAutoDownloader.Services
     public class BmdService
     {
         private static string API_URL { get; set; }
-        private static readonly string BASE_URL = $"https://gamebanana.com/apiv7/Mod/ByCategory?_csvProperties=_idRow,_sName,_aSubmitter,_aFiles,_aGame&_aCategoryRowIds[]=5568&_sOrderBy=_tsDateAdded,DESC&_nPerpage=";
+        private static readonly string BASE_URL = "https://gamebanana.com/apiv7/Mod/ByCategory?_csvProperties=_idRow,_sName,_aSubmitter,_aFiles,_aGame&_aCategoryRowIds[]=5568&_sOrderBy=_tsDateAdded,DESC&_nPerpage=";
+        private static HttpClientHandler handler = new HttpClientHandler();
+        private static HttpClient _client = new HttpClient(handler);
 
         private readonly DbService _dbservice;
         private readonly FileService _fileservice;
@@ -35,21 +37,28 @@ namespace BhopMapAutoDownloader.Services
             API_URL = BASE_URL + _config.GetValue<string>("NumberOfMapsToCheck");
             Directory.CreateDirectory(_config.GetValue<string>("DownloadPath"));
             Directory.CreateDirectory(_config.GetValue<string>("ExtractPath"));
+            if (_config.GetValue<bool>("EnableFastDlCompression"))
+                Directory.CreateDirectory(_config.GetValue<string>("FastDlPath"));
         }
 
-        public static async Task<string> GetRecentUploads()
+        public async Task<string> GetRecentUploads()
         {
-            using HttpClient _client = new HttpClient();
-            _client.BaseAddress = new Uri(API_URL);
-            using HttpResponseMessage response = await _client.GetAsync(API_URL);
+            try
+            {
+                using var response = await _client.GetAsync(API_URL);
 
-            if (response.IsSuccessStatusCode)
-                return await response.Content.ReadAsStringAsync();
-            
+                if(response.IsSuccessStatusCode)
+                    return await response.Content.ReadAsStringAsync();
+            }
+            catch (Exception e)
+            {
+                _log.LogError(e.Message);
+            }
+
             return null;
         }
 
-        public async Task CheckForNewMaps()
+        public async Task Run()
         {
             while (true)
             {
@@ -93,7 +102,7 @@ namespace BhopMapAutoDownloader.Services
 
                             if (_config.GetValue<bool>("EnableFastDlCompression"))
                             {
-                                _log.LogInformation("Compressing to bz2 for FastDl {mapfilename}...", items._aFiles[0]._sFile);
+                                _log.LogInformation("Compressing map to FastDl folder {mapfilename}...", _fileservice.ExtractedFileName);
                                 _fileservice.CompressToFastdl(_fileservice.ExtractedFileName);
                             }
                         }
