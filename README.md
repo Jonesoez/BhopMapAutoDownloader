@@ -30,7 +30,7 @@ Create and configure the `appsettings.json` file and put it in the same director
     "kz",
     "autobhop"
   ],
-  "CheckInterval": 5,
+  "CheckInterval": 300,
   "NumberOfMapsToCheck": 3
 }
 ```
