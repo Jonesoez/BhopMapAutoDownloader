@@ -8,7 +8,7 @@ Downloads recently uploaded BHOP maps from `gamebanana.com` for the game `CS:S`.
 - Checks for new uploaded maps every `n` seconds via API call
 - Downloads and extracts compressed files
 - Puts downloaded maps into the specified folder
-- Compresses downloaded maps with bzip2  and puts it into the specified folder
+- Compresses downloaded maps with bzip2  and puts them into the specified folder
 - Infos about the maps are saved in a SQLite database
 - Every action is logged (daily) and can be found in the `Logs` folder
 
