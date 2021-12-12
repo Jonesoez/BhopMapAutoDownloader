@@ -19,8 +19,8 @@ namespace BhopMapAutoDownloader.Services
     {
         private static string API_URL { get; set; }
         private static readonly string BASE_URL = "https://gamebanana.com/apiv7/Mod/ByCategory?_csvProperties=_idRow,_sName,_aSubmitter,_aFiles,_aGame&_aCategoryRowIds[]=5568&_sOrderBy=_tsDateAdded,DESC&_nPerpage=";
-        private static HttpClientHandler handler = new HttpClientHandler();
-        private static HttpClient _client = new HttpClient(handler);
+        private static readonly HttpClientHandler handler = new HttpClientHandler();
+        private static readonly HttpClient _client = new HttpClient(handler);
 
         private readonly DbService _dbservice;
         private readonly FileService _fileservice;

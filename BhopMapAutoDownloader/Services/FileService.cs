@@ -1,7 +1,8 @@
 ﻿using ICSharpCode.SharpZipLib.BZip2;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
-using SevenZipExtractor;
+using SharpCompress.Common;
+using SharpCompress.Readers;
 using System;
 using System.IO;
 using System.Linq;
@@ -26,18 +27,23 @@ namespace BhopMapAutoDownloader.Services
             if (!File.Exists(Path.Combine(_config.GetValue<string>("DownloadPath"), compressedFile)))
                 return;
 
-            using ArchiveFile archiveFile = new ArchiveFile(Path.Combine(_config.GetValue<string>("DownloadPath"), compressedFile));
-
-            try
+            using Stream stream = File.OpenRead(Path.Combine(_config.GetValue<string>("DownloadPath"), compressedFile));
+            using var reader = ReaderFactory.Open(stream);
+            while (reader.MoveToNextEntry())
             {
-                var _bspfile = archiveFile.Entries.Where(m => Path.GetExtension(m.FileName) == ".bsp").FirstOrDefault();
-                archiveFile.Extract(_config.GetValue<string>("ExtractPath"), true);
+                if (!reader.Entry.IsDirectory)
+                {
+                    reader.WriteEntryToDirectory(_config.GetValue<string>("ExtractPath"), new ExtractionOptions()
+                    {
+                        ExtractFullPath = true, 
+                        Overwrite = true 
+                    });
 
-                ExtractedFileName = _bspfile.FileName;
-            }
-            catch (Exception e)
-            {
-                _log.LogError(e.Message);
+                    if(Path.GetExtension(reader.Entry.Key) == ".bsp")
+                    {
+                        ExtractedFileName = reader.Entry.Key;
+                    }
+                }
             }
         }
 
