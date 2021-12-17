@@ -23,7 +23,7 @@ namespace BhopMapAutoDownloader
                 .ReadFrom.Configuration(buildsettings.Build())
                 .Enrich.FromLogContext()
                 .WriteTo.Console()
-                .WriteTo.File(Path.Combine("Logs", "Log-.txt"), 
+                .WriteTo.File(Path.Combine("Logs", "Log-.txt"),
                     retainedFileCountLimit: 20,
                     rollingInterval: RollingInterval.Day,
                     rollOnFileSizeLimit: true)
@@ -35,15 +35,20 @@ namespace BhopMapAutoDownloader
                 .ConfigureServices((context, services) =>
                {
                    services.AddDbContext<BmdDatabase>();
-                   services.AddTransient<DbService>();
-                   services.AddTransient<FileService>();
-                   services.AddTransient<BmdService>();
+                   services.AddHttpClient();
+                   services.AddSingleton<DbService>();
+                   services.AddSingleton<FileService>();
+                   services.AddSingleton<IBmdService, BmdService>();
+                   services.AddHostedService<ConsumeBmdService>();
                })
                 .UseSerilog()
+                .UseConsoleLifetime()
                 .Build();
 
-            var startup = ActivatorUtilities.CreateInstance<BmdService>(host.Services);
-            startup.Run().GetAwaiter().GetResult();
+            using (host)
+            {
+                host.Run();
+            }
         }
 
         public static void BuildConfig(IConfigurationBuilder builder)

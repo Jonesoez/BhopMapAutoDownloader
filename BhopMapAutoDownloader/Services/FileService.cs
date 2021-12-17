@@ -6,6 +6,7 @@ using SharpCompress.Readers;
 using System;
 using System.IO;
 using System.Linq;
+using System.Net.Http;
 
 namespace BhopMapAutoDownloader.Services
 {
@@ -15,35 +16,56 @@ namespace BhopMapAutoDownloader.Services
 
         private readonly IConfiguration _config;
         private readonly ILogger<FileService> _log;
+        private readonly IHttpClientFactory _httpclientfactory;
 
-        public FileService(IConfiguration configs, ILogger<FileService> log)
+        public FileService(IConfiguration configs, ILogger<FileService> log, IHttpClientFactory httpclientfactory)
         {
+            _httpclientfactory = httpclientfactory;
             _config = configs;
             _log = log;
         }
 
+        public void DownloadFile(string url, string filename)
+        {
+            using var _client = _httpclientfactory.CreateClient();
+            using var response = _client.GetAsync(url);
+            using (var stream = response.Result.Content.ReadAsStreamAsync())
+            {
+                var fileInfo = new FileInfo(Path.Combine(_config.GetValue<string>("DownloadPath"), filename));
+                using var fileStream = fileInfo.OpenWrite();
+                stream.Result.CopyTo(fileStream);
+                stream.Result.Close();
+            }
+        }
         public void ExtractFile(string compressedFile)
         {
             if (!File.Exists(Path.Combine(_config.GetValue<string>("DownloadPath"), compressedFile)))
                 return;
 
-            using Stream stream = File.OpenRead(Path.Combine(_config.GetValue<string>("DownloadPath"), compressedFile));
-            using var reader = ReaderFactory.Open(stream);
-            while (reader.MoveToNextEntry())
+            try 
             {
-                if (!reader.Entry.IsDirectory)
+                using Stream stream = File.OpenRead(Path.Combine(_config.GetValue<string>("DownloadPath"), compressedFile));
+                using var reader = ReaderFactory.Open(stream);
+                while (reader.MoveToNextEntry())
                 {
-                    reader.WriteEntryToDirectory(_config.GetValue<string>("ExtractPath"), new ExtractionOptions()
+                    if (!reader.Entry.IsDirectory)
                     {
-                        ExtractFullPath = true, 
-                        Overwrite = true 
-                    });
+                        reader.WriteEntryToDirectory(_config.GetValue<string>("ExtractPath"), new ExtractionOptions()
+                        {
+                            ExtractFullPath = true,
+                            Overwrite = true
+                        });
 
-                    if(Path.GetExtension(reader.Entry.Key) == ".bsp")
-                    {
-                        ExtractedFileName = reader.Entry.Key;
+                        if (Path.GetExtension(reader.Entry.Key) == ".bsp")
+                        {
+                            ExtractedFileName = reader.Entry.Key;
+                        }
                     }
                 }
+            }
+            catch (Exception e)
+            {
+                _log.LogError(e.Message);
             }
         }
 

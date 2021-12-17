@@ -10,7 +10,7 @@ using System.Linq;
 
 namespace BhopMapAutoDownloader.Services
 {
-    public class DbService
+    public class DbService 
     {
         private readonly BmdDatabase _db;
         private readonly ILogger<DbService> _log;

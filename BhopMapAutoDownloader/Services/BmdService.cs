@@ -1,38 +1,34 @@
 ﻿using BhopMapAutoDownloader.Helpers;
-using BhopMapAutoDownloader.Infrastructure;
 using BhopMapAutoDownloader.Models;
 using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Newtonsoft.Json;
 using System;
-using System.Collections.Generic;
 using System.IO;
 using System.Linq;
-using System.Net;
 using System.Net.Http;
 using System.Threading;
 using System.Threading.Tasks;
 
 namespace BhopMapAutoDownloader.Services
 {
-    public class BmdService
+    public class BmdService : IBmdService
     {
         private static string API_URL { get; set; }
         private static readonly string BASE_URL = "https://gamebanana.com/apiv7/Mod/ByCategory?_csvProperties=_idRow,_sName,_aSubmitter,_aFiles,_aGame&_aCategoryRowIds[]=5568&_sOrderBy=_tsDateAdded,DESC&_nPerpage=";
-        private static readonly HttpClientHandler handler = new HttpClientHandler();
-        private static readonly HttpClient _client = new HttpClient(handler);
 
-        private readonly DbService _dbservice;
-        private readonly FileService _fileservice;
+        private readonly IHttpClientFactory _httpclientfactory;
+        private readonly IServiceProvider _provider;
         private readonly ILogger<BmdService> _log;
         private readonly IConfiguration _config;
 
-        public BmdService(DbService dbservice, FileService fileservice, ILogger<BmdService> log, IConfiguration config)
+        public BmdService(IServiceProvider provider, ILogger<BmdService> log, IConfiguration config, IHttpClientFactory httpclientfactory)
         {
-            _dbservice = dbservice;
-            _fileservice = fileservice;
+            _provider = provider;
             _log = log;
             _config = config;
+            _httpclientfactory = httpclientfactory;
 
             API_URL = BASE_URL + _config.GetValue<string>("NumberOfMapsToCheck");
             Directory.CreateDirectory(_config.GetValue<string>("DownloadPath"));
@@ -45,7 +41,8 @@ namespace BhopMapAutoDownloader.Services
         {
             try
             {
-                using var response = await _client.GetAsync(API_URL);
+                using var client = _httpclientfactory.CreateClient();
+                using var response = await client.GetAsync(API_URL);
 
                 if(response.IsSuccessStatusCode)
                     return await response.Content.ReadAsStringAsync();
@@ -58,34 +55,34 @@ namespace BhopMapAutoDownloader.Services
             return null;
         }
 
-        public async Task Run()
+        public async Task CheckForNewMaps(CancellationToken stoppingToken)
         {
-            while (true)
+            try
             {
-                var _mapinfos = JsonConvert.DeserializeObject<Gamebanana.Data[]>(await GetRecentUploads().ConfigureAwait(false));
+                var _dbservice = _provider.GetService<DbService>();
+                var _fileservice = _provider.GetService<FileService>();
 
+                var _mapinfos = JsonConvert.DeserializeObject<Gamebanana.Data[]>(await GetRecentUploads().ConfigureAwait(false));
                 foreach (var items in _mapinfos)
                 {
                     if (_dbservice.GetMap(items._sName) == null)
                     {
-                        Maps _toadd = new Maps()
-                        {
-                            Name = items._sName,
-                            Creator = items._aSubmitter._sName,
-                            Tier = "undefined",
-                            UploadDate = TimeStamp.UnixTimeStampToDateTime(items._aFiles[0]._tsDateAdded),
-                            DownloadLink = items._aFiles[0]._sDownloadUrl
-                        };
-
                         if (_config.GetSection("MapTypes").GetChildren().Any(m => items._sName.Contains(m.Value, StringComparison.OrdinalIgnoreCase)))
                         {
                             _log.LogInformation("Found new map: {mapname} by {mapsubmitter}", items._sName, items._aSubmitter._sName);
                             _log.LogInformation("Downloading...");
 
-                            _dbservice.AddMap(_toadd);
+                            _dbservice.AddMap(
+                                new Maps
+                                {
+                                    Name = items._sName,
+                                    Creator = items._aSubmitter._sName,
+                                    Tier = "undefined",
+                                    UploadDate = TimeStamp.UnixTimeStampToDateTime(items._aFiles[0]._tsDateAdded),
+                                    DownloadLink = items._aFiles[0]._sDownloadUrl
+                                });
 
-                            using WebClient webclient = new WebClient();
-                            webclient.DownloadFile(new Uri($"{items._aFiles[0]._sDownloadUrl}"), Path.Combine(_config.GetValue<string>("DownloadPath"), items._aFiles[0]._sFile));
+                            _fileservice.DownloadFile(items._aFiles[0]._sDownloadUrl, items._aFiles[0]._sFile);
 
                             _log.LogInformation($"Extracting...");
                             _fileservice.ExtractFile(items._aFiles[0]._sFile);
@@ -108,10 +105,11 @@ namespace BhopMapAutoDownloader.Services
                         }
                     }
                 }
-
                 _log.LogInformation("Looking for new maps...");
-
-                await Task.Delay(TimeSpan.FromSeconds(_config.GetValue<int>("CheckInterval")), CancellationToken.None);
+            }
+            catch (Exception e)
+            {
+                _log.LogError(e.Message);
             }
         }
     }
