@@ -30,9 +30,9 @@ Create and configure the `appsettings.json` file and put it in the same director
   },
   "DownloadPath": "tmp_maps",
   "KeepDownloadFiles": false,
-  "ExtractPath": "extracted_maps",
+  "ExtractPath": "cstrike\/maps",
   "EnableFastDlCompression": false,
-  "FastDlPath": "\\var\\lib\\pterodactyl\\volumes\\fastdl\\",
+  "FastDlPath": "\/var\/lib\/pterodactyl\/volumes\/fastdl\/maps",
   "MapTypes": [
     "bhop",
     "kz",
